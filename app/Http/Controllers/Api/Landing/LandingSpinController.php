@@ -82,25 +82,20 @@ namespace App\Http\Controllers\Api\Landing {
             ], 200);
         }
 
+        /**
+         * The wheel's list of recent winners.
+         *
+         * This used to invent 200 of them with Faker: made-up names, made-up
+         * prizes and a made-up 9,876,543.21 total. Faker is a development
+         * dependency, so on a production install the call threw and the endpoint
+         * answered 500 every time the page loaded.
+         *
+         * Real winners are the only ones worth showing, and the wheel awards its
+         * prize at registration rather than recording a winner, so the list is
+         * empty until that changes.
+         */
         public function Winners() {
-            $faker = \Faker\Factory::create();
-            $levels = ['SUPER SPIN', 'LUCKY SPIN'];
-            $currencies = [
-                'BRL'
-            ];
-            $winners = [];
-            $totalBonus = 9876543.21;
-
-            for ($i = 0; $i < 200; $i++) {
-                array_push($winners, [
-                    'name'	=> $faker->name(),
-                    'nivel'	=> $levels[rand(0, count($levels) - 1)],
-                    'prize'	=> $this->prizes[$faker->numberBetween(0, count($this->prizes) - 1)]->value,
-                    'currency'	=> $currencies[0]
-                ]);
-            }
-
-            return response()->json([$winners, $totalBonus]);
+            return response()->json([[], 0]);
         }
 
         public function Prizes() {

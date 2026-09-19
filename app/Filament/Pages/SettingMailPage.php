@@ -137,9 +137,12 @@ class SettingMailPage extends Page
 
                     $envs->save();
 
-                    /// the config is cached in production, rebuild it or this save does nothing
+                    /// The .env change only counts once the cached config is out of the way.
+            /// Rebuilding it here ran config:cache inside the request, which
+            /// re-bootstrapped the container mid-render and left the form dying
+            /// on "Undefined variable $errors". Deleting the file is enough.
                     if (app()->configurationIsCached()) {
-                        \Artisan::call('config:cache');
+                        @unlink(app()->getCachedConfigPath());
                     }
                 }
 

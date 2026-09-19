@@ -58,7 +58,11 @@ $PHP artisan optimize:clear
 $PHP artisan config:cache
 $PHP artisan route:cache
 $PHP artisan event:cache
-$PHP artisan view:cache
+# Not view:cache. The admin panel's forms are Livewire components, and a
+# request that lands while the compiled views are being rewritten renders
+# against a half-written cache and dies with "Undefined variable $errors".
+# Blade compiles each view once on first use anyway, so the gain was noise.
+$PHP artisan view:clear
 $PHP artisan filament:upgrade || true
 
 echo "==> permissions"

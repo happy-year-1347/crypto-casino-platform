@@ -28,12 +28,22 @@ returned roughly 7.5 for every 1 staked. It is now the share of the stake the
 game gives back over time, so the chance of a winning spin is the target divided
 by what an average win pays. `tests/mock/rtp-simulate.php` runs the real
 selection code 400,000 times per game: at a setting of 92 the twelve games pay
-back 91.9% on average.
+back 91.9% on average, every one of them between 90.1% and 95.6%.
 
 **Two games paid nothing.** Queen of Bounty and Treasures of Aztec store the
 prize inside the winning-line detail rather than at the index the code read, so
 both had been paying zero on every win. The reels showed a win and the balance
 did not move.
+
+**A 500 that looked like a failed save.** Every settings page ended its save with
+Filament's file upload fields holding a plain path string, while the component
+builds an array for them when it hydrates. Re-rendering the saved form threw
+`foreach() argument must be of type array|object, string given`. The row had
+already been written, so the owner's change was saved and the screen showed an
+error. A `redirect()` immediately after the save — the plain helper rather than
+Livewire's — had hidden it. Two pages also ran `Artisan::call('config:cache')`
+inside the request, which re-bootstraps the container mid-render and leaves the
+form dying on `Undefined variable $errors`.
 
 **Money races.** Withdrawals, affiliate payouts and spins all checked a balance
 and then changed it in separate statements. Two simultaneous requests could both
@@ -50,6 +60,11 @@ a vendor asset.
 
 **Game sessions** were a plain identifier in the URL with no expiry. They are
 signed and expire after 24 hours.
+
+**Invented data.** The spin wheel's winners endpoint fabricated 200 winners with
+Faker — a development-only package, so it answered 500 on every production load
+— and the sports page shipped two hardcoded bets. Both now show nothing rather
+than something untrue.
 
 **Translations that cannot drift.** `tests/i18n/translations.php` holds every
 string in five languages, `build-lang.php` writes the JSON the app reads, and
@@ -69,6 +84,10 @@ The crypto cashier needs a NOWPayments API key and IPN secret, set in
 **Admin > Financial > Payment Gateway**. `tests/mock/nowpayments.php` is a local
 stand-in for the provider so the whole deposit and payout flow can be exercised
 without an account.
+
+Do not add `view:cache` to a deploy of this app: the admin forms are Livewire
+components, and a request that lands while the compiled views are being
+rewritten renders against a half-written cache.
 
 ## Credentials
 

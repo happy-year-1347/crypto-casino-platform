@@ -170,7 +170,7 @@ cd /var/www/casino
 # copy the new files in, then:
 php8.2 artisan migrate --force
 php8.2 artisan optimize:clear
-php8.2 artisan config:cache && php8.2 artisan route:cache && php8.2 artisan event:cache && php8.2 artisan view:cache
+php8.2 artisan config:cache && php8.2 artisan route:cache && php8.2 artisan event:cache
 chown -R www-data:www-data /var/www/casino
 ```
 

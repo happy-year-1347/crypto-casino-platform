@@ -33,7 +33,7 @@ class PaymentSetting extends Page implements HasForms
      */
     public function getTitle(): string | Htmlable
     {
-        return __('Pagamentos');
+        return __('Payments');
     }
 
     public Setting $record;
@@ -87,8 +87,14 @@ class PaymentSetting extends Page implements HasForms
                     ->success()
                     ->send();
 
-                redirect(route('filament.admin.resources.settings.payment', ['record' => $this->record->id]));
+                /// Re-hydrate from the saved row: the upload fields are plain
+                /// path strings right after the update and Filament's file
+                /// component needs the array shape it builds while hydrating.
+                $this->form->fill($setting->refresh()->toArray());
 
+                // No redirect after saving: Livewire is still morphing the
+                // form when it fires, which threw in the browser. The toast
+                // says it saved and the page stays where it is.
             }
         } catch (Halt $exception) {
             return;

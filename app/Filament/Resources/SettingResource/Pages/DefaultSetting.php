@@ -134,9 +134,12 @@ class DefaultSetting extends Page implements HasForms
 
             $envs->save();
 
-            /// the config is cached in production, rebuild it or this save does nothing
+            /// The .env change only counts once the cached config is out of the way.
+            /// Rebuilding it here ran config:cache inside the request, which
+            /// re-bootstrapped the container mid-render and left the form dying
+            /// on "Undefined variable $errors". Deleting the file is enough.
             if (app()->configurationIsCached()) {
-                \Artisan::call('config:cache');
+                @unlink(app()->getCachedConfigPath());
             }
 
             if($setting->update($this->data)) {
@@ -149,8 +152,14 @@ class DefaultSetting extends Page implements HasForms
                     ->success()
                     ->send();
 
-                redirect(route('filament.admin.resources.settings.index'));
+                /// Re-hydrate from the saved row: the upload fields are plain
+                /// path strings right after the update and Filament's file
+                /// component needs the array shape it builds while hydrating.
+                $this->form->fill($setting->refresh()->toArray());
 
+                // No redirect after saving: Livewire is still morphing the
+                // form when it fires, which threw in the browser. The toast
+                // says it saved and the page stays where it is.
             }
         } catch (Halt $exception) {
             return;

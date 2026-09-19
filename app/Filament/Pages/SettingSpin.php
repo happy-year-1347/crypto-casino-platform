@@ -117,7 +117,9 @@ class SettingSpin extends Page
                         ->success()
                         ->send();
 
-                    redirect(route('filament.admin.pages.dashboard-admin'));
+                // No redirect after saving: Livewire is still morphing the
+                // form when it fires, which threw in the browser. The toast
+                // says it saved and the page stays where it is.
                 }
             }
         } catch (Halt $exception) {
