@@ -110,15 +110,41 @@ class RolloverSetting extends Page implements HasForms
     {
         return $form
             ->schema([
-                Section::make('Bonus settings')
-                    ->description('Platform bonus')
+                Section::make('Welcome bonus limits')
+                    ->description('These are the numbers the Welcome Bonus page shows players, so changing one here changes the published terms with it.')
+                    ->schema([
+                        TextInput::make('bonus_max')
+                            ->label('Most the bonus can pay')
+                            ->numeric()
+                            ->helperText('The cap, in site currency. Without one a 100% offer pays 100% of any deposit, however large. 0 removes the cap.')
+                            ->maxLength(191),
+                        TextInput::make('bonus_min_deposit')
+                            ->label('Smallest deposit that earns it')
+                            ->numeric()
+                            ->helperText('Deposits below this get no bonus.')
+                            ->maxLength(191),
+                        TextInput::make('bonus_max_bet')
+                            ->label('Largest bet while a bonus is live')
+                            ->numeric()
+                            ->helperText('Refused above this while bonus money is in play, so a rollover cannot be cleared in a few big spins. 0 removes the limit.')
+                            ->maxLength(191),
+                        TextInput::make('bonus_days')
+                            ->label('Days before the bonus expires')
+                            ->numeric()
+                            ->suffix('days')
+                            ->helperText('Whatever is left of the bonus goes after this. 0 means it never expires.')
+                            ->maxLength(191),
+                    ])->columns(2),
+
+                Section::make('Rollover')
+                    ->description('How many times money must be wagered')
                     ->schema([
                         TextInput::make('rollover_deposit')
                             ->label('Deposit rollover')
                             ->numeric()
                             ->default(1)
                             ->suffix('x')
-                            ->helperText('How many times the deposit must be wagered')
+                            ->helperText('How many times the deposit must be wagered. The published bonus terms say deposits are not wagered just for arriving alongside a bonus, so this should be 0 unless you change that wording.')
                             ->maxLength(191),
                         TextInput::make('rollover')
                             ->label('Bonus rollover')

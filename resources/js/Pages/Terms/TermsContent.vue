@@ -45,14 +45,25 @@ export default {
         replacements() {
             const s = this.setting || {};
             const symbol = s.prefix || '';
-            const min = s.min_deposit !== undefined && s.min_deposit !== null
-                ? `${symbol}${Number(s.min_deposit).toFixed(2)}`
-                : '';
+            const money = value => (value === undefined || value === null || value === '')
+                ? ''
+                : `${symbol}${Number(value).toFixed(2)}`;
+            const plain = value => (value === undefined || value === null || value === '')
+                ? ''
+                : String(value);
+
+            /// the qualifying deposit is the bonus rule when one is set, otherwise
+            /// the cashier minimum
+            const qualifying = Number(s.bonus_min_deposit) > 0 ? s.bonus_min_deposit : s.min_deposit;
+
             return {
                 ':site': s.software_name || '',
-                ':bonus': s.initial_bonus !== undefined && s.initial_bonus !== null ? String(s.initial_bonus) : '',
-                ':rollover': s.rollover !== undefined && s.rollover !== null ? String(s.rollover) : '',
-                ':min': min,
+                ':bonus': plain(s.initial_bonus),
+                ':rollover': plain(s.rollover),
+                ':min': money(qualifying),
+                ':bonusmax': money(s.bonus_max),
+                ':maxbet': money(s.bonus_max_bet),
+                ':days': plain(s.bonus_days),
             };
         },
     },
@@ -68,7 +79,10 @@ export default {
         },
         fill(text) {
             let out = text;
-            for (const [key, value] of Object.entries(this.replacements)) {
+            /// longest key first, or ":bonus" would eat the front of ":bonusmax"
+            const keys = Object.keys(this.replacements).sort((a, b) => b.length - a.length);
+            for (const key of keys) {
+                const value = this.replacements[key];
                 if (value !== '') {
                     out = out.split(key).join(value);
                 }

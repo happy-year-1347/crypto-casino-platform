@@ -44,12 +44,25 @@ class DepositFinalizer
 
             $setting = Setting::first();
 
-            /// first completed deposit pays the welcome bonus
+            /// first completed deposit pays the welcome bonus, capped and with a
+            /// qualifying minimum, the way the published terms describe it
             $completed = Transaction::where('user_id', $transaction->user_id)->where('status', 1)->count();
-            if ($completed == 0 && $setting->initial_bonus > 0) {
-                $bonus = Helper::porcentagem_xn($setting->initial_bonus, $transaction->price);
-                $wallet->increment('balance_bonus', $bonus);
-                $wallet->update(['balance_bonus_rollover' => $bonus * $setting->rollover]);
+            if ($completed == 0) {
+                $bonus = Helper::welcomeBonus($setting, $transaction->price);
+
+                if ($bonus > 0) {
+                    $wallet->increment('balance_bonus', $bonus);
+
+                    $update = ['balance_bonus_rollover' => $bonus * $setting->rollover];
+
+                    /// the bonus has a life span; after it, whatever is left of it goes
+                    $days = intval($setting->bonus_days ?? 0);
+                    if ($days > 0) {
+                        $update['bonus_expires_at'] = now()->addDays($days);
+                    }
+
+                    $wallet->update($update);
+                }
             }
 
             /// deposit rollover before the money can be withdrawn

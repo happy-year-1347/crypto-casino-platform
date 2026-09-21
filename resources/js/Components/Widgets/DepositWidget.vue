@@ -36,13 +36,13 @@
                            v-model="cryptoAmount"
                            @input="amountTouched = true; requestEstimate()"
                            class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-                           :min="setting.min_deposit"
+                           :min="effectiveMin"
                            :max="setting.max_deposit"
                            step="0.01"
                            :placeholder="$t('Enter amount') + ' (' + priceCurrency + ')'"
                            required
                     >
-                    <p class="text-xs text-gray-500 mt-1">{{ $t('Min') }}: {{ setting.min_deposit }} {{ priceCurrency }}<span v-if="parseFloat(setting.max_deposit) > 0"> / {{ $t('Max') }}: {{ setting.max_deposit }} {{ priceCurrency }}</span></p>
+                    <p class="text-xs text-gray-500 mt-1">{{ $t('Min') }}: {{ effectiveMin.toFixed(2) }} {{ priceCurrency }}<span v-if="parseFloat(setting.max_deposit) > 0"> / {{ $t('Max') }}: {{ setting.max_deposit }} {{ priceCurrency }}</span></p>
                 </div>
 
                 <div class="mb-4 p-3 rounded bg-gray-100 dark:bg-gray-800 text-sm min-h-[52px]">
@@ -167,6 +167,21 @@
                 if(!this.estimate || !this.estimate.min || !this.estimate.min.fiat) return false;
                 return parseFloat(this.cryptoAmount) < parseFloat(this.estimate.min.fiat);
             },
+            /**
+             * The real smallest deposit for the coin on screen.
+             *
+             * The site has its own minimum, but each coin also has one at the
+             * provider that moves with the network fee: bitcoin sits far above
+             * the others. Showing only the site figure told players they could
+             * pay 10 when bitcoin would have been refused.
+             */
+            effectiveMin() {
+                const siteMin = this.setting ? parseFloat(this.setting.min_deposit) : 0;
+                const coinMin = (this.estimate && this.estimate.min && this.estimate.min.fiat)
+                    ? Math.ceil(parseFloat(this.estimate.min.fiat))
+                    : 0;
+                return Math.max(siteMin || 0, coinMin || 0);
+            },
             statusLabel() {
                 switch (this.currentStatus) {
                     case 'waiting': return 'Waiting for payment';
@@ -251,8 +266,15 @@
                         .then(response => {
                             if(response.data.success) {
                                 _this.estimate = response.data.data;
-                                // the pre-filled amount follows the coin's provider minimum until the player types their own
+                                // the pre-filled amount follows the coin's minimum until the
+                                // player types their own, downwards too: switching from bitcoin
+                                // to a cheap coin should not leave bitcoin's figure in the box
                                 const min = _this.estimate.min && parseFloat(_this.estimate.min.fiat);
+                                if(!_this.amountTouched && amount > _this.effectiveMin && _this.effectiveMin > 0) {
+                                    _this.cryptoAmount = _this.effectiveMin.toFixed(2);
+                                    _this.requestEstimate();
+                                    return;
+                                }
                                 if(!_this.amountTouched && min && amount < min) {
                                     const max = parseFloat(_this.setting.max_deposit);
                                     const bumped = Math.ceil(min);
@@ -284,8 +306,8 @@
                     _toast.error(_this.$t('Please enter a valid amount'));
                     return;
                 }
-                if(amount < parseFloat(_this.setting.min_deposit)) {
-                    _toast.error(_this.$t('Minimum deposit amount is') + ' ' + _this.setting.min_deposit + ' ' + _this.priceCurrency);
+                if(amount < _this.effectiveMin) {
+                    _toast.error(_this.$t('Minimum deposit amount is') + ' ' + _this.effectiveMin.toFixed(2) + ' ' + _this.priceCurrency);
                     return;
                 }
                 if(parseFloat(_this.setting.max_deposit) > 0 && amount > parseFloat(_this.setting.max_deposit)) {

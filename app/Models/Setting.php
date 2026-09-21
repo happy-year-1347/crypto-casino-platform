@@ -57,6 +57,10 @@ class Setting extends Model
         'turn_on_football',
 
         'initial_bonus',
+        'bonus_max',
+        'bonus_min_deposit',
+        'bonus_max_bet',
+        'bonus_days',
         'rollover',
         'rollover_deposit',
 

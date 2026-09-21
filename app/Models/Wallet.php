@@ -27,6 +27,7 @@ class Wallet extends Model
         'user_id',
         'currency',
         'symbol',
+        'bonus_expires_at',
         'balance',
         'balance_withdrawal',
         'balance_deposit_rollover',

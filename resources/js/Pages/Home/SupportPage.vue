@@ -60,11 +60,17 @@ export default {
             const min = s.min_deposit !== undefined && s.min_deposit !== null
                 ? `${symbol}${Number(s.min_deposit).toFixed(2)}`
                 : '';
+            const qualifying = Number(s.bonus_min_deposit) > 0 ? s.bonus_min_deposit : s.min_deposit;
+            const qualifyingText = (qualifying === undefined || qualifying === null)
+                ? min
+                : `${symbol}${Number(qualifying).toFixed(2)}`;
+
             return {
                 ':site': s.software_name || '',
                 ':bonus': s.initial_bonus !== undefined && s.initial_bonus !== null ? String(s.initial_bonus) : '',
                 ':rollover': s.rollover !== undefined && s.rollover !== null ? String(s.rollover) : '',
-                ':min': min,
+                ':min': qualifyingText,
+                ':bonusmax': (s.bonus_max === undefined || s.bonus_max === null) ? '' : `${symbol}${Number(s.bonus_max).toFixed(2)}`,
             };
         },
     },
@@ -80,7 +86,10 @@ export default {
         },
         fill(text) {
             let out = text;
-            for (const [key, value] of Object.entries(this.replacements)) {
+            /// longest key first, or ":bonus" would eat the front of ":bonusmax"
+            const keys = Object.keys(this.replacements).sort((a, b) => b.length - a.length);
+            for (const key of keys) {
+                const value = this.replacements[key];
                 if (value !== '') {
                     out = out.split(key).join(value);
                 }

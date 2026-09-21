@@ -787,6 +787,8 @@ class Core
                 'disable_spin',
                 ...(\Illuminate\Support\Facades\Schema::hasColumn('settings', 'default_language') ? ['default_language'] : []),
                 ...(\Illuminate\Support\Facades\Schema::hasColumn('settings', 'support_email') ? ['support_email', 'support_telegram'] : []),
+                ...(\Illuminate\Support\Facades\Schema::hasColumn('settings', 'bonus_max')
+                    ? ['bonus_max', 'bonus_min_deposit', 'bonus_max_bet', 'bonus_days'] : []),
             )->first();
 
             Cache::put('setting', $setting);
@@ -1183,10 +1185,40 @@ class Core
      */
     public static function porcentagem_xn( $porcentagem, $total )
     {
-        \Log::info('porcentagem' . json_encode($porcentagem));
-        \Log::info('total' . json_encode($total));
-
+        /// this used to write both arguments to the log on every call, which put
+        /// a line of somebody's deposit amount in the log for each bonus paid
         return ( $porcentagem / 100 ) * $total;
+    }
+
+    /**
+     * What the welcome bonus pays on a deposit, honouring the published terms:
+     * the percentage, the cap, and the smallest deposit that qualifies.
+     *
+     * Returns 0.0 when the deposit does not qualify, so the caller can treat a
+     * zero as "no bonus" without repeating the rules.
+     */
+    public static function welcomeBonus($setting, $price): float
+    {
+        $price      = (float) $price;
+        $percentage = (float) ($setting->initial_bonus ?? 0);
+
+        if ($percentage <= 0 || $price <= 0) {
+            return 0.0;
+        }
+
+        $minimum = (float) ($setting->bonus_min_deposit ?? 0);
+        if ($minimum > 0 && $price < $minimum) {
+            return 0.0;
+        }
+
+        $bonus = self::porcentagem_xn($percentage, $price);
+
+        $cap = (float) ($setting->bonus_max ?? 0);
+        if ($cap > 0 && $bonus > $cap) {
+            $bonus = $cap;
+        }
+
+        return round($bonus, 2);
     }
 
     /**

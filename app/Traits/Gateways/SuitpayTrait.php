@@ -163,7 +163,7 @@ trait SuitpayTrait
 
                 if($checkTransactions == 0 || empty($checkTransactions)) {
                     /// pagar o bonus
-                    $bonus = Helper::porcentagem_xn($setting->initial_bonus, $transaction->price);
+                    $bonus = Helper::welcomeBonus($setting, $transaction->price);
                     $wallet->increment('balance_bonus', $bonus);
                     $wallet->update(['balance_bonus_rollover' => $bonus * $setting->rollover]);
                 }

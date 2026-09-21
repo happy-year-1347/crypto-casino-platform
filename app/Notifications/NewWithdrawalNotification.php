@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Filament\Notifications\Notification as FilamentNotification;
 
 class NewWithdrawalNotification extends Notification
 {
@@ -35,9 +36,13 @@ class NewWithdrawalNotification extends Notification
      *
      * @return array<int, string>
      */
+    /**
+     * The bell in the admin always gets it. E-mail is only attempted when a
+     * mail account is actually set up.
+     */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return MailConfigured::check() ? ['database', 'mail'] : ['database'];
     }
 
     /**
@@ -55,10 +60,30 @@ class NewWithdrawalNotification extends Notification
      *
      * @return array<string, mixed>
      */
+    /**
+     * The bell reads Filament's own shape, not a plain array, so build it
+     * with Filament's builder. Written any other way the panel just says
+     * there is nothing to show.
+     */
+    public function toDatabase(object $notifiable): array
+    {
+        return FilamentNotification::make()
+            ->title('Withdrawal requested')
+            ->body($this->name . ' asked to withdraw ' . \Helper::amountFormatDecimal($this->amout))
+            ->icon('heroicon-o-arrow-up-tray')
+            ->warning()
+            ->getDatabaseMessage();
+    }
+
     public function toArray(object $notifiable): array
     {
         return [
-            'message' => 'Olá Administrador, Foi solicitado um saque de ' . \Helper::amountFormatDecimal($this->amout) . ' , pelo usuário' . $this->name,
+            'title'  => 'Withdrawal requested',
+            'body'   => $this->name . ' asked to withdraw ' . \Helper::amountFormatDecimal($this->amout),
+            'icon'   => 'heroicon-o-arrow-up-tray',
+            'status' => 'warning',
+            // the older records used this key, keep it so they still display
+            'message' => $this->name . ' asked to withdraw ' . \Helper::amountFormatDecimal($this->amout),
         ];
     }
 }

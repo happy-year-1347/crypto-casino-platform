@@ -71,6 +71,12 @@ class AdminPanelProvider extends PanelProvider
             ])
 
             ->font('Roboto Condensed')
+            /// The bell in the header. Deposits and withdrawal requests were
+            /// already being recorded, but with nothing to display them the
+            /// owner only learned about them by e-mail, which needs a mail
+            /// account set up first.
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->brandLogo(fn () => view('filament.components.logo'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

@@ -93,6 +93,43 @@ trait PrivateGamesTrait
      * @return JsonResponse
      */
     /**
+     * The two welcome bonus rules that live outside the wallet: an expired bonus
+     * is cleared, and while bonus money is in play the stake is capped.
+     *
+     * Returns null when the spin may go ahead, or the response to send back.
+     */
+    public static function enforceBonusRules($wallet, float $bet)
+    {
+        $setting = \Helper::getSetting();
+
+        /// an expired bonus is no longer money
+        if (!empty($wallet->bonus_expires_at) && now()->greaterThan($wallet->bonus_expires_at)) {
+            if (floatval($wallet->balance_bonus) > 0 || floatval($wallet->balance_bonus_rollover) > 0) {
+                $wallet->update([
+                    'balance_bonus'          => 0,
+                    'balance_bonus_rollover' => 0,
+                    'bonus_expires_at'       => null,
+                ]);
+                $wallet->refresh();
+            }
+        }
+
+        $maxBet = (float) ($setting->bonus_max_bet ?? 0);
+        $playingWithBonus = floatval($wallet->balance_bonus) > 0
+            || floatval($wallet->balance_bonus_rollover) > 0;
+
+        if ($maxBet > 0 && $playingWithBonus && $bet > $maxBet) {
+            return response()->json([
+                'message' => __('While a bonus is active the largest bet is :max', [
+                    'max' => ($setting->prefix ?? '') . number_format($maxBet, 2),
+                ]),
+            ], 400);
+        }
+
+        return null;
+    }
+
+    /**
      * What one result row pays, as a multiple of (cpl * betamount).
      *
      * Most of the games put that number at index 5. Queen of Bounty and
@@ -233,6 +270,15 @@ trait PrivateGamesTrait
             }else{
                 if ($bet <= 0) {
                     return response()->json("Insuficient balances", 400);
+                }
+
+                /// The bonus terms cap the stake while bonus money is in play and
+                /// give the bonus a life span. Both were only ever written down,
+                /// so a player could clear a 20x rollover in a handful of large
+                /// spins, or months later.
+                $refused = self::enforceBonusRules($wallet, $bet);
+                if ($refused !== null) {
+                    return $refused;
                 }
 
                 /// deduz o saldo apostado. The wallet is locked for the check and the

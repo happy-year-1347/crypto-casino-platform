@@ -142,13 +142,21 @@ class PaymentSetting extends Page implements HasForms
                             ->label('Currency symbol')
                             ->helperText('Shown next to every amount, for example $ or €.')
                             ->maxLength(5),
-//                        Select::make('decimal_format')->options([
-//                            'dot' => 'Dot',
-//                        ]),
-//                        Select::make('currency_position')->options([
-//                            'left' => 'Left',
-//                            'right' => 'Right',
-//                        ]),
+                        Select::make('decimal_format')
+                            ->label('Number format')
+                            ->helperText('How amounts are written. The names in the old setting were the wrong way round.')
+                            ->options([
+                                'comma' => '1,234.56   (dot for the cents)',
+                                'dot'   => '1.234,56   (comma for the cents)',
+                            ])
+                            ->selectablePlaceholder(false),
+                        Select::make('currency_position')
+                            ->label('Symbol position')
+                            ->options([
+                                'left'  => 'Before the amount, $10.00',
+                                'right' => 'After the amount, 10.00$',
+                            ])
+                            ->selectablePlaceholder(false),
 
                         Group::make()
                             ->label('Sub-affiliate percentage')
