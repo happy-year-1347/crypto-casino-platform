@@ -38,8 +38,15 @@ class SettingMailPage extends Page
      * offered here use those. Anything on 587 will simply time out, which is
      * what makes a wrong setting look like "e-mail does not work".
      */
-    public const OPEN_PORTS  = [2525, 2465];
+    public const OPEN_PORTS  = [2525, 2587];
     public const BLOCKED_PORTS = [25, 465, 587];
+
+    /**
+     * Reachable, but it wants an encrypted connection from the very first byte,
+     * which this framework only does on port 465, and 465 is blocked. Anyone who
+     * types it gets told to use 2587 instead.
+     */
+    public const WRONG_KIND_OF_PORT = [2465];
 
     protected const PROVIDERS = [
         'brevo' => [
@@ -57,7 +64,7 @@ class SettingMailPage extends Page
         'resend' => [
             'label'      => 'Resend',
             'host'       => 'smtp.resend.com',
-            'port'       => '2465',
+            'port'       => '2587',
             'encryption' => 'tls',
         ],
         'custom' => [
@@ -97,7 +104,7 @@ class SettingMailPage extends Page
                             ->content(new HtmlString(
                                 '<div style="border-left:3px solid #f59e0b;padding:.5rem .75rem;background:rgba(245,158,11,.08)">'
                                 . '<strong>Read this first.</strong> This server cannot use ports 25, 465 or 587: the hosting company blocks them, '
-                                . 'so those settings time out no matter which company you sign up with. Ports <strong>2525</strong> and <strong>2465</strong> '
+                                . 'so those settings time out no matter which company you sign up with. Ports <strong>2525</strong> and <strong>2587</strong> '
                                 . 'do work. Pick a service below and the right port is filled in for you, then press '
                                 . '<strong>Send a test e-mail</strong> before saving.'
                                 . '</div>'
@@ -130,10 +137,10 @@ class SettingMailPage extends Page
                             ->numeric()
                             ->placeholder('2525')
                             ->maxLength(191)
-                            ->helperText('2525 or 2465. Anything else is blocked from this server.')
-                            ->rules(['not_in:' . implode(',', self::BLOCKED_PORTS)])
+                            ->helperText('2525 or 2587. Anything else is blocked from this server.')
+                            ->rules(['not_in:' . implode(',', array_merge(self::BLOCKED_PORTS, self::WRONG_KIND_OF_PORT))])
                             ->validationMessages([
-                                'not_in' => 'That port is blocked by the hosting company and will never connect. Use 2525, or 2465 for Resend.',
+                                'not_in' => 'That port will not work from this server. Use 2525, or 2587 for Resend.',
                             ]),
 
                         TextInput::make('software_smtp_mail_username')
@@ -220,11 +227,16 @@ class SettingMailPage extends Page
             return;
         }
 
+        if (in_array($port, self::WRONG_KIND_OF_PORT, true)) {
+            $this->failed('Port ' . $port . ' expects an encrypted connection from the first byte, which this server cannot use because its plain equivalent (465) is blocked. Use 2587 instead, which does the same job.');
+            return;
+        }
+
         /// check the door is open before blaming the credentials
         $socket = @fsockopen($host, $port, $errNo, $errStr, 10);
         if ($socket === false) {
             if (in_array($port, self::BLOCKED_PORTS, true)) {
-                $this->failed('Port ' . $port . ' is blocked by the hosting company, so nothing can go out on it. Use 2525, or 2465 for Resend.');
+                $this->failed('Port ' . $port . ' is blocked by the hosting company, so nothing can go out on it. Use 2525, or 2587 for Resend.');
             } else {
                 $this->failed('Could not reach ' . $host . ' on port ' . $port . '. ' . ($errStr ?: 'It did not answer.'));
             }

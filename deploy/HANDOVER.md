@@ -52,8 +52,21 @@ There are two separate things here, and they are easy to mix up.
 
 **Receiving at your support address** is handled by your DNS provider, not by
 this server. The domain's MX record points at a forwarding service, so in that
-provider's panel you point the support address at whatever inbox you actually
-read. There is no mailbox to create here and no password to give anyone.
+provider's panel you point the support address at an inbox you already own.
+There is no mailbox to create and no password anywhere.
+
+In the provider's panel, open the domain's email forwarding page and add a
+forward whose *from* is the part before the @ (for example `support`) and whose
+*to* is the address you actually read. A `*` in the from field makes a catch-all,
+which loses nothing but collects spam, so a named forward is the better default.
+
+Two things this does not do. It cannot **send**: replies you write come from your
+own address, not from the support address. And it is not a login, so there is no
+mailbox password to put anywhere in the admin.
+
+**Do this before signing up to a sending service below.** Those services prove
+you own an address by e-mailing a code or a link to it, so the forward has to be
+working first or the code never reaches you.
 
 **Sending from the site** is what needs switching on: password resets for
 players, and e-mail copies of the deposit and withdrawal alerts that already
@@ -62,7 +75,7 @@ appear in the admin bell. Everything else on the site works without it.
 > **The one thing that trips this up.** The hosting company blocks outgoing
 > ports 25, 465 and 587 on this server. Those are the ports every guide tells
 > you to use, so normal SMTP settings simply time out and look like "e-mail does
-> not work", whichever company you sign up with. Ports **2525** and **2465** are
+> not work", whichever company you sign up with. Ports **2525** and **2587** are
 > open, and so is ordinary HTTPS.
 
 To switch it on, go to **Admin > E-mail**. Pick a service from the dropdown and
@@ -72,7 +85,7 @@ the address, port and encryption fill themselves in:
 |---|---|---|
 | Brevo | smtp-relay.brevo.com | 2525 |
 | SMTP2GO | mail.smtp2go.com | 2525 |
-| Resend | smtp.resend.com | 2465 |
+| Resend | smtp.resend.com | 2587 |
 
 Sign up with one of them (all have a free tier that is far more than this site
 needs), paste the login and key they give you, put your support address in the
