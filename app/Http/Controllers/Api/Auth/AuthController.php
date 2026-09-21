@@ -216,7 +216,7 @@ class AuthController extends Controller
         try {
             \Mail::send('emails.forget-password', [ 'token' => $token, 'resetLink' => url('/reset-password/'.$token) ], function($message) use($request){
                 $message->to($request->email);
-                $message->subject('Reset Password');
+                $message->subject(__('Reset your password'));
             });
         } catch (\Throwable $e) {
             /// no mail server configured, or it refused the message: say so instead

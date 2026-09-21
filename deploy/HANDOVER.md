@@ -46,20 +46,42 @@ The cashier is finished and waiting for your NOWPayments account.
 
 Then make one small real deposit and check it lands in Financial > Deposits.
 
-## E-mail (do this when you can)
+## E-mail
 
-The site cannot send e-mail yet, because there is no mail account configured.
-Everything works without it, except "Forgot password": a player who asks for a
-reset link gets a polite "contact support" message instead of an e-mail.
+There are two separate things here, and they are easy to mix up.
 
-To switch it on: **Admin > Settings > Mail** (SMTP), and fill in a mail account.
-Any of these work: your own domain mailbox, or a free sending service such as
-Brevo, Mailgun or Postmark. You need host, port, username, password, encryption
-(usually tls on port 587) and the from address, for example
-no-reply@vpcasino.net. Save, then ask for a password reset to test it.
+**Receiving at your support address** is handled by your DNS provider, not by
+this server. The domain's MX record points at a forwarding service, so in that
+provider's panel you point the support address at whatever inbox you actually
+read. There is no mailbox to create here and no password to give anyone.
 
-If the e-mails land in spam, add an SPF record at Njalla for the domain, the
-sending service tells you exactly what to paste.
+**Sending from the site** is what needs switching on: password resets for
+players, and e-mail copies of the deposit and withdrawal alerts that already
+appear in the admin bell. Everything else on the site works without it.
+
+> **The one thing that trips this up.** The hosting company blocks outgoing
+> ports 25, 465 and 587 on this server. Those are the ports every guide tells
+> you to use, so normal SMTP settings simply time out and look like "e-mail does
+> not work", whichever company you sign up with. Ports **2525** and **2465** are
+> open, and so is ordinary HTTPS.
+
+To switch it on, go to **Admin > E-mail**. Pick a service from the dropdown and
+the address, port and encryption fill themselves in:
+
+| Service | Address | Port |
+|---|---|---|
+| Brevo | smtp-relay.brevo.com | 2525 |
+| SMTP2GO | mail.smtp2go.com | 2525 |
+| Resend | smtp.resend.com | 2465 |
+
+Sign up with one of them (all have a free tier that is far more than this site
+needs), paste the login and key they give you, put your support address in the
+from address, then press **Send a test e-mail** before saving. That button
+actually connects and tells you what went wrong if anything did, rather than
+saving quietly and failing later. The page refuses to accept a blocked port.
+
+If the messages land in spam, the service will give you two or three DNS lines
+(SPF and DKIM) to add at your DNS provider. The domain has none of them today.
 
 ## Day to day
 

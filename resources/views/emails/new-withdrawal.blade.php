@@ -1,18 +1,30 @@
 <!DOCTYPE html>
-<html>
+{{-- Goes to the owner, who reads English, so this one is not translated. --}}
+<html lang="en">
 <head>
     <meta charset="utf-8">
+    <title>Withdrawal requested</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #6C7A89;">
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #6C7A89;">
     <tr>
-        <td style="text-align: center;padding: 50px;">
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #fff; border-radius: 10px; box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;">
+        <td style="text-align: center; padding: 50px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto;">
                 <tr>
-                    <td style="padding: 20px;">
-                        <h2 style="margin-bottom: 20px;">NOVA SOLICITAÇÃO DE SAQUE</h2>
-                        <p>Prezado Administrador,</p>
-                        <p>Desejamos informar que o usuário <strong>{{ $usuario }}</strong> acabou de solicitar um saque de <strong>{{ $valor }}</strong> em nossa plataforma.</p>
+                    <td style="background-color: #fff; padding: 24px; border-radius: 10px; box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px; font-family: Arial, Helvetica, sans-serif; color: #1f2937; text-align: left;">
+                        <h2 style="margin: 0 0 16px; font-size: 20px;">Withdrawal requested</h2>
+                        <p style="margin: 0 0 12px; font-size: 15px; line-height: 1.5;">
+                            <strong>{{ $usuario }}</strong> asked to withdraw <strong>{{ $valor }}</strong>.
+                        </p>
+                        <p style="margin: 0 0 20px; font-size: 15px; line-height: 1.5;">
+                            The amount has already been held back from the player's withdrawable balance and is waiting for you.
+                            Open Withdrawals in the admin panel to send it, to mark it paid if you sent it yourself, or to cancel it
+                            and give the money back.
+                        </p>
+                        <a href="{{ url('/admin') }}" style="background-color: #dc2626; color: #fff; padding: 10px 18px; text-decoration: none; border-radius: 6px; display: inline-block; font-size: 14px;">Open the admin panel</a>
+                        <p style="margin: 20px 0 0; font-size: 12px; color: #6b7280;">
+                            {{ config('app.name') }}
+                        </p>
                     </td>
                 </tr>
             </table>
