@@ -161,6 +161,39 @@ with rclone), and switch SSH to a key instead of a password.
   counting; delete the account in User Management > Users if you want the numbers
   to start from zero.
 
+## The legal pages
+
+Seven pages sit in the footer under ABOUT US:
+
+| Page | Address |
+|---|---|
+| Terms of Service | /terms/service |
+| Privacy Policy | /terms/privacy-policy |
+| Bonus Terms | /terms/bonus |
+| Welcome Bonus | /terms/bonus-welcome |
+| Responsible Gambling | /terms/responsible-gambling |
+| KYC and AML Policy | /terms/kyc-aml |
+| Restricted Countries | /terms/restricted-countries |
+
+The last three exist because your own Welcome Bonus terms point at them:
+section 14 promises the restricted-country list is shown separately, section 16
+points at the Responsible Gambling Policy, and section 21 says all of these are
+read together. Each one is written in English, Portuguese, Spanish, French and
+German, and follows the language the visitor picks.
+
+The numbers inside the bonus text are not typed into the page. They are read
+from Settings, so the moment you change the welcome bonus percentage, the cap,
+the rollover, the minimum deposit, the maximum bet or the number of days, every
+language of the page changes with it and cannot contradict what the cashier
+actually does.
+
+The wording lives in `resources/js/Pages/Terms/`, one file per page. To change
+the country list, edit `restricted-countries.js`, then run `npm run build` and
+copy `public/build` to the server. The list there is the usual one for a crypto
+casino: the countries that license gambling themselves and the places under
+international sanctions. Add or remove countries as your own legal advice tells
+you.
+
 ## Installing an update later
 
 ```bash

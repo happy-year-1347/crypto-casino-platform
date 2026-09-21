@@ -47,6 +47,9 @@
                         <li class="transition duration-700 hover:dark:text-white text-gray-600 dark:text-gray-400 hover:text-gray-800 text-[12px]"><a @click.prevent="$router.push('/terms/privacy-policy')" href="">{{ $t('Privacy Policy') }}</a></li>
                         <li class="transition duration-700 hover:dark:text-white text-gray-600 dark:text-gray-400 hover:text-gray-800 text-[12px]"><a @click.prevent="$router.push('/terms/bonus')" href="">{{ $t('Bonus Terms') }}</a></li>
                         <li class="transition duration-700 hover:dark:text-white text-gray-600 dark:text-gray-400 hover:text-gray-800 text-[12px]"><a @click.prevent="$router.push('/terms/bonus-welcome')" href="">{{ $t('Welcome Bonus') }}</a></li>
+                        <li class="transition duration-700 hover:dark:text-white text-gray-600 dark:text-gray-400 hover:text-gray-800 text-[12px]"><a @click.prevent="$router.push('/terms/responsible-gambling')" href="">{{ $t('Responsible Gambling') }}</a></li>
+                        <li class="transition duration-700 hover:dark:text-white text-gray-600 dark:text-gray-400 hover:text-gray-800 text-[12px]"><a @click.prevent="$router.push('/terms/kyc-aml')" href="">{{ $t('KYC and AML Policy') }}</a></li>
+                        <li class="transition duration-700 hover:dark:text-white text-gray-600 dark:text-gray-400 hover:text-gray-800 text-[12px]"><a @click.prevent="$router.push('/terms/restricted-countries')" href="">{{ $t('Restricted Countries') }}</a></li>
                     </ul>
                 </div>
             </div>

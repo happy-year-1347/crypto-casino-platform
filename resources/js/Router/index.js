@@ -15,6 +15,9 @@ import ServiceTerms from "@/Pages/Terms/ServiceTerms.vue";
 import PrivacyPolicy from "@/Pages/Terms/PrivacyPolicy.vue";
 import BonusTerms from "@/Pages/Terms/BonusTerms.vue";
 import WelcomeBonus from "@/Pages/Terms/WelcomeBonus.vue";
+import RestrictedCountries from "@/Pages/Terms/RestrictedCountries.vue";
+import ResponsibleGambling from "@/Pages/Terms/ResponsibleGambling.vue";
+import KycAml from "@/Pages/Terms/KycAml.vue";
 import SupportPage from "@/Pages/Home/SupportPage.vue";
 import PromotionPage from "@/Pages/Home/PromotionPage.vue";
 import StripeSuccess from "@/Pages/Gateway/StripeSuccess.vue";
@@ -202,6 +205,22 @@ export const routes = [
         name: 'welcomeBonus',
         path: '/terms/bonus-welcome',
         component: WelcomeBonus
+    },
+    {
+        // the welcome bonus terms say the restricted-country list is shown separately
+        name: 'restrictedCountries',
+        path: '/terms/restricted-countries',
+        component: RestrictedCountries
+    },
+    {
+        name: 'responsibleGambling',
+        path: '/terms/responsible-gambling',
+        component: ResponsibleGambling
+    },
+    {
+        name: 'kycAml',
+        path: '/terms/kyc-aml',
+        component: KycAml
     },
     {
         name: 'recordPage',
