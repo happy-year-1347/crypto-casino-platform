@@ -88,6 +88,8 @@ class GgrTableWidget extends BaseWidget
      */
     public static function canView(): bool
     {
-        return auth()->user()->hasRole('admin');
+        /// the "GGR World Slot" table belongs to the same unused third party
+        /// provider as GGROverview; see the note there.
+        return false;
     }
 }

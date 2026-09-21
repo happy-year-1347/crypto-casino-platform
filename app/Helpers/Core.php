@@ -785,6 +785,9 @@ class Core
                 'stripe_is_enable',
                 'crypto_is_enabled',
                 'disable_spin',
+                /// missing from this list, so every caller read it as null and the
+                /// affiliate revshare on the dashboard always worked out to zero
+                'revshare_percentage',
                 ...(\Illuminate\Support\Facades\Schema::hasColumn('settings', 'default_language') ? ['default_language'] : []),
                 ...(\Illuminate\Support\Facades\Schema::hasColumn('settings', 'support_email') ? ['support_email', 'support_telegram'] : []),
                 ...(\Illuminate\Support\Facades\Schema::hasColumn('settings', 'bonus_max')

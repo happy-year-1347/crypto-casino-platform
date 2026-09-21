@@ -46,6 +46,12 @@ class GGROverview extends BaseWidget
      */
     public static function canView(): bool
     {
-        return auth()->user()->hasRole('admin');
+        /// "Fivers" and "World Slot" are a third party games provider that came
+        /// with the script and that this casino does not use: the twelve slots
+        /// run on this server. The panel showed three of its figures, one of them
+        /// blank, on a dashboard meant to answer "how much money came in". Hidden
+        /// rather than deleted, so turning the provider on later only needs this
+        /// line changed back.
+        return false;
     }
 }

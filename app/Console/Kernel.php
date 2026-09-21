@@ -12,8 +12,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-
-
+        /// The site is told a payment finished by the provider's callback. If one
+        /// is ever missed, a player who really paid would never be credited and
+        /// nothing would notice. Asking every ten minutes closes that gap, and
+        /// tidies away attempts nobody ever paid.
+        $schedule->command('crypto:reconcile')
+            ->everyTenMinutes()
+            ->withoutOverlapping()
+            ->runInBackground();
     }
 
     /**

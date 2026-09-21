@@ -49,25 +49,32 @@ class WalletOverview extends BaseWidget
         $sumWithdrawalMonth = $withdrawalQuery->sum('amount');
         $revshare = \Helper::porcentagem_xn($setting->revshare_percentage, $sumDepositMonth);
 
+        /// these three are the chosen period, not all time, and they used to say
+        /// "Total". With no dates picked that period is the current month.
+        $period = (empty($startDate) && empty($endDate))
+            ? 'this month, ' . $dataAtual->format('F')
+            : 'between the dates picked above';
+
         return [
-            Stat::make('Deposits', \Helper::amountFormatDecimal($sumDepositMonth))
-                ->description('Total Deposits')
+            Stat::make('Deposits in', \Helper::amountFormatDecimal($sumDepositMonth))
+                ->description($period)
                 ->descriptionIcon('heroicon-o-arrow-down-tray')
                 ->icon('heroicon-o-banknotes')
-                ->color('success')
-                ->chart([12, 15, 18, 22, 25, 28, 30]),
-            Stat::make('Withdrawals', \Helper::amountFormatDecimal($sumWithdrawalMonth))
-                ->description('Total Withdrawals')
+                ->color('success'),
+            Stat::make('Paid out', \Helper::amountFormatDecimal($sumWithdrawalMonth))
+                ->description($period)
                 ->descriptionIcon('heroicon-o-arrow-up-tray')
                 ->icon('heroicon-o-currency-dollar')
-                ->color('danger')
-                ->chart([8, 10, 12, 15, 18, 20, 22]),
-            Stat::make('Revshare', \Helper::amountFormatDecimal($revshare))
-                ->description('Platform Earnings')
-                ->descriptionIcon('heroicon-o-arrow-trending-up')
+                ->color('danger'),
+            /// this is what affiliates are owed on those deposits, not money the
+            /// owner keeps, so it no longer calls itself platform earnings
+            Stat::make('Affiliate revshare', \Helper::amountFormatDecimal($revshare))
+                ->description(((float) ($setting->revshare_percentage ?? 0)) > 0
+                    ? $setting->revshare_percentage . '% owed on the deposits above'
+                    : 'no revshare percentage is set')
+                ->descriptionIcon('heroicon-o-users')
                 ->icon('heroicon-o-chart-bar')
-                ->color('success')
-                ->chart([5, 8, 10, 12, 15, 18, 20]),
+                ->color('warning'),
         ];
     }
 

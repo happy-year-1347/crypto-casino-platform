@@ -24,6 +24,19 @@ class NowPaymentsClient
     public const SANDBOX_URL = 'https://api-sandbox.nowpayments.io/v1/';
 
     /**
+     * Go out over IPv4.
+     *
+     * This server has both, and prefers IPv6, so NOWPayments was seeing the calls
+     * arrive from 2a06:1700:... rather than from the address in the hosting panel.
+     * That is invisible until the day someone turns on NOWPayments' IP allow-list,
+     * pastes the IPv4 address everyone knows, and every call starts being refused
+     * for no apparent reason. Pinning it keeps the source address predictable.
+     */
+    public const CURL_OPTIONS = [
+        'curl' => [CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4],
+    ];
+
+    /**
      * Coins offered to players by default. Keys are NOWPayments currency codes,
      * values are what the player sees. The admin can narrow this list.
      */
@@ -36,6 +49,10 @@ class NowPaymentsClient
         'doge'      => ['label' => 'Dogecoin (DOGE)',          'network' => 'DOGE'],
         'eth'       => ['label' => 'Ethereum (ETH)',           'network' => 'Ethereum'],
         'usdc'      => ['label' => 'USD Coin (USDC) - ERC20',  'network' => 'Ethereum'],
+        /// the same dollar on Polygon. Sending it costs a player cents instead of
+        /// the several dollars an Ethereum transfer costs, and the smallest
+        /// deposit the network allows drops from about 1.09 to about 0.34.
+        'usdcmatic' => ['label' => 'USD Coin (USDC) - Polygon', 'network' => 'Polygon'],
         'bnbbsc'    => ['label' => 'BNB - BSC',                'network' => 'BSC'],
     ];
 
@@ -217,7 +234,7 @@ class NowPaymentsClient
             throw new RuntimeException('NOWPayments payout e-mail and password are not configured.');
         }
 
-        $response = Http::acceptJson()->timeout(30)->post($this->baseUrl() . 'auth', [
+        $response = Http::acceptJson()->timeout(30)->withOptions(self::CURL_OPTIONS)->post($this->baseUrl() . 'auth', [
             'email'    => $email,
             'password' => $password,
         ]);
@@ -353,6 +370,7 @@ class NowPaymentsClient
 
         return Http::acceptJson()
             ->timeout(30)
+            ->withOptions(self::CURL_OPTIONS)
             ->withHeaders(['x-api-key' => $this->apiKey()]);
     }
 

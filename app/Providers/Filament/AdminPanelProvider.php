@@ -89,7 +89,10 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 WalletOverview::class,
-                AdminWidgets::class,
+                /// AdminWidgets showed CPA, revshare and losses for people the
+                /// signed-in admin had personally referred, which for the owner is
+                /// three zeros with invented trend lines under them. The dashboard
+                /// is where he checks the takings, so it stays off it.
                 LatestAdminComissions::class,
             ])
             ->navigation(function (NavigationBuilder $builder): NavigationBuilder {
