@@ -65,8 +65,14 @@ class DepositFinalizer
                 }
             }
 
-            /// deposit rollover before the money can be withdrawn
-            $wallet->update(['balance_deposit_rollover' => $transaction->price * intval($setting->rollover_deposit)]);
+            /// deposit rollover before the money can be withdrawn. It adds to what
+            /// is already owed: the gateway code that came with the script assigned
+            /// it instead, so a second small deposit wiped out the rollover still
+            /// owed on a large first one.
+            $depositRollover = $transaction->price * intval($setting->rollover_deposit);
+            if ($depositRollover > 0) {
+                $wallet->increment('balance_deposit_rollover', $depositRollover);
+            }
 
             Helper::payBonusVip($wallet, $transaction->price);
 

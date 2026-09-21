@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 trait PrivateGamesTrait
@@ -162,18 +163,12 @@ trait PrivateGamesTrait
      * target divided by the average win. The cap keeps a game with tiny prizes
      * from winning on nearly every spin.
      */
-    public static function drawResult(array $winResults, array $loseResults, int $rtp, int $numline): array
+    public static function drawResult(array $winResults, array $loseResults, int $rtp, int $numline, ?string $poolKey = null): array
     {
         $rtp     = max(0, min(100, $rtp));
         $numline = max(1, $numline);
 
-        $averageWin = 0.0;
-        if (!empty($winResults)) {
-            foreach ($winResults as $row) {
-                $averageWin += self::rowPayout($row);
-            }
-            $averageWin = ($averageWin / count($winResults)) / $numline;
-        }
+        $averageWin = self::averageWin($winResults, $numline, $poolKey);
 
         $chance = 0.0;
         if ($averageWin > 0 && $rtp > 0) {
@@ -191,6 +186,44 @@ trait PrivateGamesTrait
         }
 
         return $pool[array_rand($pool)];
+    }
+
+    /**
+     * What an average winning row pays, per line.
+     *
+     * Two of the games carry a win table of several hundred rows, and working
+     * this out from scratch on every spin cost about 20 ms of processor time
+     * for each of them. The answer only changes when the game's own table
+     * changes, so it is remembered against the game code and the size of the
+     * table: a new table has a different size and so a different key, and any
+     * deploy clears the cache anyway.
+     */
+    protected static function averageWin(array $winResults, int $numline, ?string $poolKey = null): float
+    {
+        if (empty($winResults)) {
+            return 0.0;
+        }
+
+        $compute = function () use ($winResults, $numline): float {
+            $total = 0.0;
+            foreach ($winResults as $row) {
+                $total += self::rowPayout($row);
+            }
+            return ($total / count($winResults)) / $numline;
+        };
+
+        if ($poolKey === null) {
+            return $compute();
+        }
+
+        $key = 'spin:averagewin:' . $poolKey . ':' . count($winResults) . ':' . $numline;
+
+        try {
+            return (float) Cache::rememberForever($key, $compute);
+        } catch (\Throwable $e) {
+            /// a cache that cannot be written must never stop a spin
+            return $compute();
+        }
     }
 
     public static function SpinStructure(string $token, array $settingGame, array $pull, array $dataLose, array $dataDemo, array $dataWin, array $dataBonus)
@@ -255,7 +288,7 @@ trait PrivateGamesTrait
                 /// gives back over time. The prizes in the win pool are large
                 /// (tens of times the stake), so the chance of a winning spin is
                 /// the target divided by what an average win pays.
-                $result = self::drawResult($winResults, $loseResults, intval($game->rtp), $numline);
+                $result = self::drawResult($winResults, $loseResults, intval($game->rtp), $numline, $game->game_code);
             }
 
             if (empty($result)) {
