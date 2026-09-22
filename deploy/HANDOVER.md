@@ -143,9 +143,17 @@ Two warnings from the maths behind it:
 - Very low numbers (under 50) make the games feel dead. Players stop playing long
   before your edge earns anything.
 
-Queen of Bounty and Treasures of Aztec pay bigger prizes less often than the
-others, so their takings swing more from week to week. Over a few thousand spins
-they settle at the number you set.
+**Do not judge the number from a short run.** These games pay rarely and big, so
+a few hundred spins tells you nothing. An average winning spin on Fortune Tiger
+pays about 13 times the line bet, on Queen of Bounty about 11, and on Treasures
+of Aztec about 43. The rarer and larger the prize, the longer it takes to settle.
+A test of 400 spins on Fortune Tiger has come back at 83%, at 27% and at 94% on
+different days, all with the setting untouched at 90. Over tens of thousands of
+spins every game lands on the number you set, because the odds are worked out
+from that number directly rather than approximated.
+
+Queen of Bounty and Treasures of Aztec swing the hardest, so their weekly
+takings will look the most uneven. That is the game, not a fault.
 
 Players pick their own language with the globe icon (English, Português,
 Español, Français, Deutsch). New visitors get their browser language, and
