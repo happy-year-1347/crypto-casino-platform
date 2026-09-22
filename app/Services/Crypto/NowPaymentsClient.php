@@ -41,20 +41,77 @@ class NowPaymentsClient
      * values are what the player sees. The admin can narrow this list.
      */
     public const DEFAULT_CURRENCIES = [
-        'btc'       => ['label' => 'Bitcoin (BTC)',            'network' => 'BTC'],
-        'ltc'       => ['label' => 'Litecoin (LTC)',           'network' => 'LTC'],
-        'usdttrc20' => ['label' => 'Tether (USDT) - TRC20',    'network' => 'TRON'],
-        'usdterc20' => ['label' => 'Tether (USDT) - ERC20',    'network' => 'Ethereum'],
-        'trx'       => ['label' => 'TRON (TRX)',               'network' => 'TRON'],
-        'doge'      => ['label' => 'Dogecoin (DOGE)',          'network' => 'DOGE'],
-        'eth'       => ['label' => 'Ethereum (ETH)',           'network' => 'Ethereum'],
-        'usdc'      => ['label' => 'USD Coin (USDC) - ERC20',  'network' => 'Ethereum'],
+        'btc'       => ['label' => 'Bitcoin (BTC)',            'network' => 'Bitcoin',  'ticker' => 'BTC'],
+        'ltc'       => ['label' => 'Litecoin (LTC)',           'network' => 'Litecoin', 'ticker' => 'LTC'],
+        'usdttrc20' => ['label' => 'Tether (USDT) - TRC20',    'network' => 'TRON',     'ticker' => 'USDT'],
+        'usdterc20' => ['label' => 'Tether (USDT) - ERC20',    'network' => 'Ethereum', 'ticker' => 'USDT'],
+        'trx'       => ['label' => 'TRON (TRX)',               'network' => 'TRON',     'ticker' => 'TRX'],
+        'doge'      => ['label' => 'Dogecoin (DOGE)',          'network' => 'Dogecoin', 'ticker' => 'DOGE'],
+        'eth'       => ['label' => 'Ethereum (ETH)',           'network' => 'Ethereum', 'ticker' => 'ETH'],
+        'usdc'      => ['label' => 'USD Coin (USDC) - ERC20',  'network' => 'Ethereum', 'ticker' => 'USDC'],
         /// the same dollar on Polygon. Sending it costs a player cents instead of
         /// the several dollars an Ethereum transfer costs, and the smallest
         /// deposit the network allows drops from about 1.09 to about 0.34.
-        'usdcmatic' => ['label' => 'USD Coin (USDC) - Polygon', 'network' => 'Polygon'],
-        'bnbbsc'    => ['label' => 'BNB - BSC',                'network' => 'BSC'],
+        'usdcmatic' => ['label' => 'USD Coin (USDC) - Polygon', 'network' => 'Polygon', 'ticker' => 'USDC'],
+        'bnbbsc'    => ['label' => 'BNB - BSC',                'network' => 'BSC',      'ticker' => 'BNB'],
     ];
+
+    /**
+     * The provider answers with its own short codes for a chain, and they are not
+     * the names people know. It calls the Polygon network "matic", which is the
+     * chain's old name and is also the name of a different coin, so a payment
+     * page that repeats it as-is reads "Network: MATIC" and invites somebody to
+     * send MATIC when they were asked for USDC. These are the names to show.
+     */
+    public const NETWORK_LABELS = [
+        'matic'    => 'Polygon',
+        'polygon'  => 'Polygon',
+        'eth'      => 'Ethereum',
+        'erc20'    => 'Ethereum',
+        'btc'      => 'Bitcoin',
+        'doge'     => 'Dogecoin',
+        'ltc'      => 'Litecoin',
+        'bsc'      => 'BNB Smart Chain',
+        'trx'      => 'TRON',
+        'trc20'    => 'TRON',
+        'sol'      => 'Solana',
+        'arbitrum' => 'Arbitrum One',
+        'base'     => 'Base',
+        'op'       => 'Optimism',
+        'avaxc'    => 'Avalanche C-Chain',
+        'algo'     => 'Algorand',
+    ];
+
+    /**
+     * The name of the chain to put in front of a player. Our own catalogue wins,
+     * then the map above, and only then whatever the provider said.
+     */
+    public function networkLabel(string $currency, ?string $providerNetwork = null): string
+    {
+        $currency = strtolower($currency);
+
+        if (!empty(self::DEFAULT_CURRENCIES[$currency]['network'])) {
+            return self::DEFAULT_CURRENCIES[$currency]['network'];
+        }
+
+        $raw = strtolower((string) $providerNetwork);
+        if ($raw !== '' && isset(self::NETWORK_LABELS[$raw])) {
+            return self::NETWORK_LABELS[$raw];
+        }
+
+        return $raw !== '' ? strtoupper($raw) : strtoupper($currency);
+    }
+
+    /**
+     * The coin's everyday ticker. The provider's own code glues the chain onto
+     * the end ("usdcmatic"), which is not a thing anybody holds in a wallet.
+     */
+    public function tickerFor(string $currency): string
+    {
+        $currency = strtolower($currency);
+
+        return self::DEFAULT_CURRENCIES[$currency]['ticker'] ?? strtoupper($currency);
+    }
 
     protected ?Gateway $gateway;
 

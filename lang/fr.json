@@ -47,6 +47,7 @@
     "Responsible Gambling": "Jeu responsable",
     "KYC and AML Policy": "Politique KYC et LCB",
     "Restricted Countries": "Pays restreints",
+    "Send :coin on the :network network only. Anything else sent to this address is lost.": "Envoyez :coin uniquement sur le réseau :network. Tout autre envoi vers cette adresse est perdu.",
     "Reset your password": "Réinitialisez votre mot de passe",
     "Someone asked to reset the password for your :site account. If it was you, use the button below.": "Quelqu'un a demandé à réinitialiser le mot de passe de votre compte :site. Si c'était vous, utilisez le bouton ci-dessous.",
     "Choose a new password": "Choisir un nouveau mot de passe",

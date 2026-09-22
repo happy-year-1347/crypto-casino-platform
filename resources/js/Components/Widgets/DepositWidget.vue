@@ -48,9 +48,9 @@
                 <div class="mb-4 p-3 rounded bg-gray-100 dark:bg-gray-800 text-sm min-h-[52px]">
                     <div v-if="estimateLoading" class="text-gray-500">{{ $t('Getting live rate') }}...</div>
                     <div v-else-if="estimate && estimate.estimated_amount">
-                        <div>{{ $t('You will send approximately') }} <strong>{{ estimate.estimated_amount }} {{ estimate.pay_currency }}</strong></div>
+                        <div>{{ $t('You will send approximately') }} <strong>{{ estimate.estimated_amount }} {{ payTicker }}</strong></div>
                         <div v-if="estimate.min && estimate.min.fiat" class="text-xs mt-1" :class="belowProviderMinimum ? 'text-red-500' : 'text-gray-500'">
-                            {{ $t('Provider minimum for this coin') }}: {{ estimate.min.crypto }} {{ estimate.pay_currency }} (~{{ Number(estimate.min.fiat).toFixed(2) }} {{ priceCurrency }})
+                            {{ $t('Provider minimum for this coin') }}: {{ estimate.min.crypto }} {{ payTicker }} (~{{ Number(estimate.min.fiat).toFixed(2) }} {{ priceCurrency }})
                         </div>
                     </div>
                     <div v-else-if="estimateError" class="text-red-500">{{ estimateError }}</div>
@@ -69,7 +69,7 @@
                 <div class="w-full p-4 bg-white dark:bg-gray-700 rounded mb-3">
                     <div class="flex justify-between items-center">
                         <div>
-                            <h2 class="text-lg font-semibold">{{ $t('Send') }} {{ cryptoPaymentData.pay_amount }} {{ cryptoPaymentData.pay_currency }}</h2>
+                            <h2 class="text-lg font-semibold">{{ $t('Send') }} {{ cryptoPaymentData.pay_amount }} {{ payTicker }}</h2>
                             <p class="text-xs text-gray-500">= {{ cryptoPaymentData.price_amount }} {{ cryptoPaymentData.price_currency }}</p>
                         </div>
                         <i class="fa-brands fa-bitcoin text-4xl text-orange-500"></i>
@@ -93,8 +93,11 @@
                         </div>
                     </div>
                     <div class="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
-                        <p class="text-sm"><strong>{{ $t('Amount to send') }}:</strong> {{ cryptoPaymentData.pay_amount }} {{ cryptoPaymentData.pay_currency }}</p>
-                        <p class="text-sm mt-1"><strong>{{ $t('Network') }}:</strong> {{ (cryptoPaymentData.network || cryptoPaymentData.pay_currency).toUpperCase() }}</p>
+                        <p class="text-sm"><strong>{{ $t('Amount to send') }}:</strong> {{ cryptoPaymentData.pay_amount }} {{ payTicker }}</p>
+                        <p class="text-sm mt-1"><strong>{{ $t('Network') }}:</strong> {{ networkLabel }}</p>
+                        <p class="text-sm mt-1 font-medium">
+                            {{ $t('Send :coin on the :network network only. Anything else sent to this address is lost.', {coin: payTicker, network: networkLabel}) }}
+                        </p>
                         <p class="text-sm mt-1"><strong>{{ $t('Status') }}:</strong> <span class="uppercase">{{ $t(statusLabel) }}</span></p>
                         <p v-if="expiresIn" class="text-sm mt-1"><strong>{{ $t('Address valid for') }}:</strong> {{ expiresIn }}</p>
                         <p class="text-xs mt-2 text-gray-500">{{ $t('Send the exact amount in one transaction. The balance is credited automatically after network confirmation.') }}</p>
@@ -158,8 +161,26 @@
                 // reactive: the store fills it asynchronously on first load
                 return useSettingStore().setting;
             },
+            /// the provider answers with its own codes: "usdcmatic" for the coin and
+            /// "matic" for the chain. Neither is what a player has in their wallet,
+            /// and "MATIC" is also the name of a different coin, so show the names
+            /// the server worked out instead and only fall back to the raw ones.
+            payTicker() {
+                const d = this.cryptoPaymentData || {};
+                if (d.pay_ticker) return d.pay_ticker;
+                const coin = this.currencies.find(c => c.code === this.cryptoCurrency);
+                return coin && coin.ticker ? coin.ticker : String(d.pay_currency || '').toUpperCase();
+            },
+            networkLabel() {
+                const d = this.cryptoPaymentData || {};
+                if (d.network_label) return d.network_label;
+                const coin = this.currencies.find(c => c.code === this.cryptoCurrency);
+                if (coin && coin.network) return coin.network;
+                return String(d.network || d.pay_currency || '').toUpperCase();
+            },
             currencyCodes() {
-                return this.currencies.map(c => c.code.replace(/(trc20|erc20|bsc)$/i, '').toUpperCase())
+                /// show the tickers people know, not the provider's glued-together codes
+                return this.currencies.map(c => c.ticker || c.code.replace(/(trc20|erc20|bsc|matic)$/i, '').toUpperCase())
                     .filter((v, i, a) => a.indexOf(v) === i)
                     .join(', ');
             },

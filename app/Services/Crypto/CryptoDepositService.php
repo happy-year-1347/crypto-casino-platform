@@ -60,14 +60,14 @@ class CryptoDepositService
         $list = [];
         foreach ($enabled as $code => $meta) {
             if (in_array($code, $merchant, true)) {
-                $list[] = ['code' => $code, 'label' => $meta['label'], 'network' => $meta['network']];
+                $list[] = ['code' => $code, 'label' => $meta['label'], 'network' => $meta['network'], 'ticker' => $this->client->tickerFor($code)];
             }
         }
 
         // if the merchant list could not be matched at all, show the admin list rather than nothing
         if (empty($list)) {
             foreach ($enabled as $code => $meta) {
-                $list[] = ['code' => $code, 'label' => $meta['label'], 'network' => $meta['network']];
+                $list[] = ['code' => $code, 'label' => $meta['label'], 'network' => $meta['network'], 'ticker' => $this->client->tickerFor($code)];
             }
         }
 
@@ -180,6 +180,10 @@ class CryptoDepositService
             'pay_amount'     => $payment['pay_amount'] ?? null,
             'pay_currency'   => strtoupper($payment['pay_currency'] ?? $currency),
             'network'        => $payment['network'] ?? ($this->client->enabledCurrencies()[strtolower($currency)]['network'] ?? null),
+            /// what to actually print: the coin people know and the chain by the
+            /// name people know it by, rather than the provider's own codes
+            'pay_ticker'     => $this->client->tickerFor($currency),
+            'network_label'  => $this->client->networkLabel($currency, $payment['network'] ?? null),
             'price_amount'   => $payment['price_amount'] ?? $amount,
             'price_currency' => strtoupper($payment['price_currency'] ?? $fiat),
             'payin_extra_id' => $payment['payin_extra_id'] ?? null,

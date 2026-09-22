@@ -85,7 +85,7 @@
                                     </div>
                                     <div class="mt-3 p-3 rounded bg-white dark:bg-gray-900 text-sm">
                                         <span v-if="estimateLoading" class="text-gray-500">{{ $t('Getting live rate') }}...</span>
-                                        <span v-else-if="estimate && estimate.estimated_amount">{{ $t('You will receive approximately') }} <strong>{{ estimate.estimated_amount }} {{ estimate.pay_currency }}</strong> <span class="text-gray-500">({{ $t('rate is fixed when the payout is sent') }})</span></span>
+                                        <span v-else-if="estimate && estimate.estimated_amount">{{ $t('You will receive approximately') }} <strong>{{ estimate.estimated_amount }} {{ selectedTicker }}</strong> <span class="text-gray-500">({{ $t('rate is fixed when the payout is sent') }})</span></span>
                                         <span v-else-if="estimateError" class="text-red-500">{{ estimateError }}</span>
                                         <span v-else class="text-gray-500">{{ $t('Enter an amount to see the live rate') }}</span>
                                     </div>
@@ -169,6 +169,13 @@ export default {
         selectedNetwork() {
             const coin = this.currencies.find(c => c.code === this.withdraw.crypto_currency);
             return coin ? coin.network : '';
+        },
+        /// the provider's code glues the chain onto the coin ("usdcmatic"), which
+        /// is not what anyone has in their wallet, so show the plain ticker
+        selectedTicker() {
+            const coin = this.currencies.find(c => c.code === this.withdraw.crypto_currency);
+            if (coin && coin.ticker) return coin.ticker;
+            return String(this.withdraw.crypto_currency || '').toUpperCase();
         }
     },
     beforeUnmount() {
