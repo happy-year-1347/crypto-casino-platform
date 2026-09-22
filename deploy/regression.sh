@@ -224,6 +224,15 @@ has "deposits are reported"        "$DASH" "Deposits"
 has "affiliate commission is real" "$DASH" "Affiliate commission"
 is  "the dead World Slot panels are gone" "no" "$(printf '%s' "$DASH" | grep -qi 'fivers' && echo yes || echo no)"
 
+sect "the games are all still on disk"
+GAME_FILES=$(find "$APP/public/originals" -type f 2>/dev/null | wc -l)
+is "all 1734 game files are present" "1734" "$GAME_FILES"
+GAME_DIRS=$(find "$APP/public/originals" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | wc -l)
+is "all 12 game folders are present" "12" "$GAME_DIRS"
+for G in fortunetiger queenofbounty jackfrost treasuresofaztec; do
+  is "$G has its index.html" "yes" "$([ -f "$APP/public/originals/$G/index.html" ] && echo yes || echo no)"
+done
+
 sect "the database can actually keep a promise"
 NON_INNODB=$(mysql -N -B casino -e "select count(*) from information_schema.tables where table_schema='casino' and engine<>'InnoDB';")
 is "every table is innodb, so locks and rollbacks are real" "0" "$NON_INNODB"
