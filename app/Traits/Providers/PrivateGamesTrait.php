@@ -135,6 +135,29 @@ trait PrivateGamesTrait
      * it simply does not bring the wagering requirement down, so the bonus
      * cannot be cleared in a handful of oversized spins.
      */
+    /**
+     * True when the request carries a sign-in for a different account than the
+     * game token belongs to.
+     *
+     * A plain game request carries no sign-in at all, which is fine and returns
+     * false. Only a request that proves it is somebody else is turned away.
+     */
+    protected static function spinnerIsSomebodyElse($tokenUser): bool
+    {
+        try {
+            if (!request()->bearerToken()) {
+                return false;
+            }
+            if (!auth('api')->check()) {
+                return false;
+            }
+            return (int) auth('api')->id() !== (int) $tokenUser->id;
+        } catch (\Throwable $e) {
+            /// an unreadable or expired sign-in is not proof of anything
+            return false;
+        }
+    }
+
     public static function betCountsTowardRollover($wallet, float $bet): bool
     {
         $setting = \Helper::getSetting();
@@ -262,6 +285,18 @@ trait PrivateGamesTrait
 
             if(empty($game) || empty($user) || empty($wallet)) {
                 return response()->json([], 400);
+            }
+
+            /// The game runs in an iframe and sends no sign-in header, so the
+            /// signed token in its address is what says who is playing. That is
+            /// how these game clients work and the route is open on purpose.
+            ///
+            /// But if a request does arrive signed in as somebody else, it is
+            /// not a game: it is one account spending another account's money,
+            /// which worked until now. Anyone who saw the game address, over a
+            /// shoulder or in a shared screenshot, could empty that balance.
+            if (self::spinnerIsSomebodyElse($user)) {
+                return response()->json(['message' => 'This game session belongs to another account.'], 403);
             }
 
             $cpl                = intval($settingGame['cpl']);

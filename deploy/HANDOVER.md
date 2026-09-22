@@ -186,6 +186,22 @@ then `npm run build`.
 Two things you may want later: copy the backups off the server (any cloud drive
 with rclone), and switch SSH to a key instead of a password.
 
+## Checking the site still works
+
+`deploy/regression.sh` plays through the site the way a customer and the owner
+do, and asserts on every result. Run it after any change:
+
+```bash
+sudo bash /var/www/casino/deploy/regression.sh
+```
+
+It signs up a throwaway player, credits a deposit through the real payment
+callback, checks the bonus and its wagering requirement, spins every enabled
+game at several stakes, requests and cancels a withdrawal, fires spins and
+withdrawals at the same instant to prove money cannot be spent twice, checks the
+pages, the things that must not be reachable, the backups and the scheduled
+jobs, then removes everything it created. It exits non-zero if anything is wrong.
+
 ## Things worth doing
 
 - Set up e-mail (above). It is the only thing on the site that does not work
