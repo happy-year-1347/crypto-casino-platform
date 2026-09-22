@@ -52,7 +52,7 @@ class NowPaymentsClient
         /// the same dollar on Polygon. Sending it costs a player cents instead of
         /// the several dollars an Ethereum transfer costs, and the smallest
         /// deposit the network allows drops from about 1.09 to about 0.34.
-        'usdcmatic' => ['label' => 'USD Coin (USDC) - Polygon', 'network' => 'Polygon', 'ticker' => 'USDC'],
+        'usdcmatic' => ['label' => 'USD Coin (USDC) - Polygon', 'network' => 'Polygon (MATIC)', 'ticker' => 'USDC'],
         'bnbbsc'    => ['label' => 'BNB - BSC',                'network' => 'BSC',      'ticker' => 'BNB'],
     ];
 
@@ -64,8 +64,13 @@ class NowPaymentsClient
      * send MATIC when they were asked for USDC. These are the names to show.
      */
     public const NETWORK_LABELS = [
-        'matic'    => 'Polygon',
-        'polygon'  => 'Polygon',
+        /// Both names, on purpose. The chain was called Matic until 2023 and
+        /// plenty of exchanges still label the withdrawal network MATIC, so a
+        /// player told only "Polygon" has to guess that they are the same thing.
+        /// Guessing wrong here means sending to a chain the address does not
+        /// exist on, and the money is gone.
+        'matic'    => 'Polygon (MATIC)',
+        'polygon'  => 'Polygon (MATIC)',
         'eth'      => 'Ethereum',
         'erc20'    => 'Ethereum',
         'btc'      => 'Bitcoin',

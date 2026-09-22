@@ -48,8 +48,13 @@ class StatsOverview extends BaseWidget
 
         $heldForPlayers = (float) Wallet::sum(DB::raw('balance + balance_bonus + balance_withdrawal'));
 
-        $staked = (float) Order::whereIn('type', ['bet', 'loss'])->sum('amount');
-        $won    = (float) Order::where('type', 'win')->sum('amount');
+        /// Every round writes one order row holding that round's stake, and the
+        /// row is relabelled win or loss afterwards without the amount changing.
+        /// So the stake is the sum of all of them, and summing the ones marked
+        /// "win" gives the stakes of winning rounds, not the winnings. What was
+        /// actually paid out is the running total the wallet keeps.
+        $staked = (float) Order::sum('amount');
+        $won    = (float) Wallet::sum('total_won');
 
         return [
             Stat::make('Deposits, all time', \Helper::amountFormatDecimal($depositsAll))
@@ -89,7 +94,10 @@ class StatsOverview extends BaseWidget
                 ->color('info'),
 
             Stat::make('Staked by players', \Helper::amountFormatDecimal($staked))
-                ->description(\Helper::amountFormatDecimal($won) . ' won back')
+                ->description($staked > 0
+                    ? \Helper::amountFormatDecimal($won) . ' won back, you kept '
+                        . number_format(($staked - $won) / $staked * 100, 1) . '%'
+                    : 'nobody has played yet')
                 ->descriptionIcon('heroicon-o-trophy')
                 ->icon('heroicon-o-chart-pie')
                 ->color($staked >= $won ? 'success' : 'danger'),
