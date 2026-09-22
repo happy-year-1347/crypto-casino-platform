@@ -101,8 +101,6 @@ trait PrivateGamesTrait
      */
     public static function enforceBonusRules($wallet, float $bet)
     {
-        $setting = \Helper::getSetting();
-
         /// an expired bonus is no longer money
         if (!empty($wallet->bonus_expires_at) && now()->greaterThan($wallet->bonus_expires_at)) {
             if (floatval($wallet->balance_bonus) > 0 || floatval($wallet->balance_bonus_rollover) > 0) {
@@ -115,19 +113,45 @@ trait PrivateGamesTrait
             }
         }
 
-        $maxBet = (float) ($setting->bonus_max_bet ?? 0);
+        /// The stake cap used to refuse the spin with a 400. The games are
+        /// third-party clients that cannot read our message, so every refusal
+        /// surfaced as "Please Check Your Connection!" or, on some of them, a
+        /// Portuguese "you have no balance" while the balance was plainly on
+        /// screen. Nine of the twelve games looked broken for anyone holding a
+        /// bonus who nudged the stake up.
+        ///
+        /// The published terms do not say the bet is refused either. They say
+        /// the "maximum qualifying wager", which is the usual industry wording:
+        /// stake what you like, but anything above the cap does not count
+        /// towards clearing the bonus. That is what happens now, in
+        /// betCountsTowardRollover() below.
+        return null;
+    }
+
+    /**
+     * Whether this stake counts towards clearing the bonus.
+     *
+     * A bet over the cap is allowed and is paid from the bonus like any other,
+     * it simply does not bring the wagering requirement down, so the bonus
+     * cannot be cleared in a handful of oversized spins.
+     */
+    public static function betCountsTowardRollover($wallet, float $bet): bool
+    {
+        $setting = \Helper::getSetting();
+        $maxBet  = (float) ($setting->bonus_max_bet ?? 0);
+
+        if ($maxBet <= 0) {
+            return true;
+        }
+
         $playingWithBonus = floatval($wallet->balance_bonus) > 0
             || floatval($wallet->balance_bonus_rollover) > 0;
 
-        if ($maxBet > 0 && $playingWithBonus && $bet > $maxBet) {
-            return response()->json([
-                'message' => __('While a bonus is active the largest bet is :max', [
-                    'max' => ($setting->prefix ?? '') . number_format($maxBet, 2),
-                ]),
-            ], 400);
+        if (!$playingWithBonus) {
+            return true;
         }
 
-        return null;
+        return $bet <= $maxBet;
     }
 
     /**
@@ -314,6 +338,10 @@ trait PrivateGamesTrait
                     return $refused;
                 }
 
+                /// a stake over the cap still spins, it just does not count
+                /// towards clearing the bonus
+                $countsTowardRollover = self::betCountsTowardRollover($wallet, $bet);
+
                 /// deduz o saldo apostado. The wallet is locked for the check and the
                 /// deduction together, so two spins fired at once cannot both pass.
                 $changeBonus = \DB::transaction(function () use ($wallet, $bet) {
@@ -424,7 +452,7 @@ trait PrivateGamesTrait
 
                 /// paga o premio (com rollover), comissões de afiliado e fecha a aposta:
                 /// the bet row created above becomes type win/loss, same convention as the API providers
-                Helper::generateGameHistory($user->id, $type, $winAmount, $betInitial, $changeBonus, $transactionId);
+                Helper::generateGameHistory($user->id, $type, $winAmount, $betInitial, $changeBonus, $transactionId, $countsTowardRollover);
             }
 
             return response()->json([

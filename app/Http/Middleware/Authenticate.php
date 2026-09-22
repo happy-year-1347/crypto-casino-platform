@@ -12,6 +12,10 @@ class Authenticate extends Middleware
      */
     protected function redirectTo(Request $request): ?string
     {
-        return $request->expectsJson() ? null : route('login');
+        /// There is no server-side route named "login": the sign-in screen is a
+        /// page inside the Vue app. Asking for route('login') threw, so every
+        /// signed-out visit to a guarded address became a 500 and an entry in
+        /// the error log instead of a redirect to the sign-in page.
+        return $request->expectsJson() ? null : url('/login');
     }
 }

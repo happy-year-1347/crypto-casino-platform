@@ -47,7 +47,15 @@ class WalletOverview extends BaseWidget
         }
 
         $sumWithdrawalMonth = $withdrawalQuery->sum('amount');
-        $revshare = \Helper::porcentagem_xn($setting->revshare_percentage, $sumDepositMonth);
+
+        /// This used to be the revshare percentage applied to the month's
+        /// deposits, which is not a real figure: nobody is owed a share of a
+        /// deposit. Affiliates earn on the losses of players they referred, and
+        /// only on real money, never on bonus money. Showing 20% of every
+        /// deposit made it look as though an affiliate had already been paid
+        /// 2.80 on a 14.00 deposit by a player who had no affiliate at all.
+        $commissionAwarded = (float) \App\Models\AffiliateHistory::sum('commission_paid');
+        $commissionHeld    = (float) \App\Models\Wallet::sum('refer_rewards');
 
         /// these three are the chosen period, not all time, and they used to say
         /// "Total". With no dates picked that period is the current month.
@@ -68,13 +76,13 @@ class WalletOverview extends BaseWidget
                 ->color('danger'),
             /// this is what affiliates are owed on those deposits, not money the
             /// owner keeps, so it no longer calls itself platform earnings
-            Stat::make('Affiliate revshare', \Helper::amountFormatDecimal($revshare))
-                ->description(((float) ($setting->revshare_percentage ?? 0)) > 0
-                    ? $setting->revshare_percentage . '% owed on the deposits above'
-                    : 'no revshare percentage is set')
+            Stat::make('Affiliate commission', \Helper::amountFormatDecimal($commissionAwarded))
+                ->description($commissionAwarded > 0
+                    ? \Helper::amountFormatDecimal($commissionHeld) . ' still in affiliate balances'
+                    : 'earned on referred players\' losses, nothing yet')
                 ->descriptionIcon('heroicon-o-users')
                 ->icon('heroicon-o-chart-bar')
-                ->color('warning'),
+                ->color($commissionAwarded > 0 ? 'warning' : 'gray'),
         ];
     }
 

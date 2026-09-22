@@ -80,11 +80,19 @@ class Core
      * @param $WinAmount
      * @return void
      */
-    public static function payWithRollover($userId, $changeBonus, $WinAmount): void
+    public static function payWithRollover($userId, $changeBonus, $WinAmount, $countsTowardRollover = true): void
     {
         $wallet = Wallet::where('user_id', $userId)->first();
 
         if(!empty($wallet)) {
+
+            /// A stake above the bonus terms' maximum qualifying wager still wins
+            /// and is still paid, it just does not bring the wagering requirement
+            /// down, so the bonus cannot be cleared in a few oversized spins.
+            if(!$countsTowardRollover && $changeBonus == 'balance_bonus') {
+                $wallet->increment('balance_bonus', $WinAmount);
+                return;
+            }
 
             /// verificar se é bonus ou balance
             if($changeBonus == 'balance_bonus') {
@@ -443,7 +451,7 @@ class Core
      * @param $changeBonus
      * @return mixed
      */
-    public static function generateGameHistory($userId, $type, $win, $bet, $changeBonus, $tx)
+    public static function generateGameHistory($userId, $type, $win, $bet, $changeBonus, $tx, $countsTowardRollover = true)
     {
         $user       = User::find($userId);
         $affiliate  = User::find($user->inviter);
@@ -461,7 +469,7 @@ class Core
             if(floatval($win) > 0) {
 
                 /// atualiza os ganhos da vitoria
-                self::payWithRollover($userId, $changeBonus, $win); /// verifica o rollover
+                self::payWithRollover($userId, $changeBonus, $win, $countsTowardRollover); /// verifica o rollover
             }
         }
 
